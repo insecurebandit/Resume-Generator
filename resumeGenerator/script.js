@@ -4,28 +4,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const resumeContent = document.getElementById("resumeContent");
     const downloadBtn = document.getElementById("downloadBtn");
 
-    // new: photo input and stored dataURL
+    // new: photo input stored as object URL (smaller than inline base64)
     const photoInput = document.getElementById("photo");
     let photoData = null;
+    let photoObjectUrl = null;
 
-    // read image when selected so it's ready at submit
     if (photoInput) {
         photoInput.addEventListener('change', () => {
             const file = photoInput.files && photoInput.files[0];
-            if (!file) { photoData = null; return; }
-            const reader = new FileReader();
-            reader.onload = () => { photoData = reader.result; };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // helper to read file (used as fallback if submit happens before change event)
-    function readImageFile(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+            // revoke previous URL
+            if (photoObjectUrl) { URL.revokeObjectURL(photoObjectUrl); photoObjectUrl = null; photoData = null; }
+            if (!file) { return; }
+            photoObjectUrl = URL.createObjectURL(file);
+            photoData = photoObjectUrl;
         });
     }
 
@@ -53,15 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const yearTertiary = document.getElementById("yearTertiaryEducation").value;
 
         const skills = document.getElementById("skills").value;
-
-        // ensure photoData is available if a file is selected but not yet read
-        if (!photoData && photoInput && photoInput.files && photoInput.files[0]) {
-            try {
-                photoData = await readImageFile(photoInput.files[0]);
-            } catch (err) {
-                photoData = null;
-            }
-        }
 
         // Build structured, safe HTML for the resume
         // Split skills into individual words/tokens.
@@ -125,6 +107,20 @@ document.addEventListener("DOMContentLoaded", () => {
         downloadBtn.disabled = false;
     });
 
+    // small helper to lazy-load external scripts
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            // if already present, resolve
+            for (const s of document.scripts) if (s.src && s.src.indexOf(src) !== -1) return resolve();
+            const el = document.createElement('script');
+            el.src = src;
+            el.async = true;
+            el.onload = () => resolve();
+            el.onerror = () => reject(new Error('Failed to load ' + src));
+            document.head.appendChild(el);
+        });
+    }
+
     // new: format selector
     const downloadFormat = document.getElementById('downloadFormat');
 
@@ -140,11 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
         downloadBtn.textContent = 'Preparing...';
 
         try {
-            // ensure html2canvas available
-            if (typeof html2canvas !== 'function') throw new Error('html2canvas not loaded');
+            // lazy-load html2canvas if needed
+            if (typeof html2canvas !== 'function') {
+                await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+                if (typeof html2canvas !== 'function') throw new Error('html2canvas failed to load');
+            }
 
-            // capture at higher scale for better print quality
-            const scale = 2;
+            // capture at balanced scale for quality vs filesize
+            const scale = 1.5; // reduced from 2 for smaller canvas
             const canvas = await html2canvas(sheet, {
                 scale,
                 useCORS: true,
@@ -167,7 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 a.click();
                 a.remove();
             } else if (format === 'pdf') {
-                // ensure jsPDF exists
+                // lazy-load jsPDF only when exporting PDF
+                if (!(window.jspdf && window.jspdf.jsPDF) && !window.jsPDF) {
+                    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+                }
                 const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF || null);
                 if (!jsPDFCtor) throw new Error('jsPDF not loaded');
 
@@ -188,8 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const imgProps = pdf.getImageProperties(imgData);
                 const imgWidthPx = imgProps.width;
                 const imgHeightPx = imgProps.height;
-                const pxToMm = (pageWidth) / (canvas.width / (pageWidth)); // fallback scale
-                // safer calculation: convert canvas pixel dimensions to mm based on page width
                 const imgWidthMm = pageWidth;
                 const imgHeightMm = (imgHeightPx * imgWidthMm) / imgWidthPx;
 
@@ -199,23 +199,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     pdf.save(`${baseName}_${timestamp}.pdf`);
                 } else {
                     // split long image into pages
-                    let remainingHeightPx = canvas.height;
                     const pageCanvas = document.createElement('canvas');
-                    const pageScale = canvas.width / (pageWidth * (96 / 25.4)); // fallback not exact; simpler approach below
-
-                    // simpler approach: add the full image scaled to page width and let it overflow across pages by slicing
-                    const ratio = canvas.width / imgWidthPx; // should be ~1
-                    const sliceHeightPx = Math.round((imgWidthPx * pageHeight) / (imgWidthMm) * (imgHeightPx / imgHeightPx)); // fallback
-                    // fallback: draw scaled full image to temporarily create single-image pages by vertical slicing
-                    const img = new Image();
-                    img.src = imgData;
-                    await new Promise((res) => { img.onload = res; });
-
-                    // compute scale from canvas px to mm using pageWidth
-                    const scalePxToMm = (pageWidth) / canvas.width;
+                    const scalePxToMm = pageWidth / canvas.width;
                     let yPosPx = 0;
                     while (yPosPx < canvas.height) {
-                        // create a temporary canvas sized to width x sliceHeight
                         const h = Math.min(canvas.height - yPosPx, Math.round(pageHeight / scalePxToMm));
                         pageCanvas.width = canvas.width;
                         pageCanvas.height = h;
@@ -241,22 +228,5 @@ document.addEventListener("DOMContentLoaded", () => {
             downloadBtn.textContent = originalText;
         }
     });
-
-    const printCSS = `
-        @page { size: A4; margin: 18mm; }
-        html, body { height: 100%; margin:0; padding:0; }
-        body { font-family: 'Montserrat', Arial, sans-serif; color:#222; -webkit-print-color-adjust: exact; }
-        .resume-sheet { width:210mm; min-height:297mm; box-sizing:border-box; padding:18mm; background:#fff; color:#111; font-size:11.5pt; line-height:1.35; }
-        .resume-header { text-align:left; margin-bottom:8px; }
-        .name { font-size:24px; margin:0 0 4px 0; letter-spacing:0.4px; }
-        .contact { font-size:11pt; color:#555; margin-bottom:10px; }
-        .section-title { font-size:12.5px; margin:12px 0 6px 0; color:#0a3f66; text-transform:uppercase; letter-spacing:0.6px; }
-        .section p { margin:0 0 8px 0; font-size:15px; }
-        .education-list, .skills-list { margin:0 0 8px 0; padding-left:18px; }
-    `;
-
-    // add a style tag to the head for print CSS
-    const style = document.createElement('style');
-    style.appendChild(document.createTextNode(printCSS));
-    document.head.appendChild(style);
 });
+
