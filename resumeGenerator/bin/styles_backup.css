@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+body {
+    font-family: Montserrat, sans-serif;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 900px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input, textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+textarea {
+    resize: none;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
+button {
+    background-color: #4a90e2;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3 ease;
+}
+
+button:hover {
+    background-color: #357abd;
+}
+
+.hidden {
+    display:none;
+}
+
+/* A4 size for printing */
+
+#resumeOutput {
+    margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+#resumeContent {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    width: 100%;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+    white-space: normal;
+    box-sizing: border-box;
+    margin: 10px 0;
+    display:flex;
+    justify-content:center;
+}
+
+/* Structured resume styles: use true A4 sheet sizing for preview and print */
+.resume-sheet {
+    width: 210mm;               /* exact A4 width */
+    min-height: 297mm;         /* exact A4 height */
+    padding: 18mm;             /* typical page margin */
+    box-sizing: border-box;
+    background: #fff;
+    font-family: Montserrat, Arial, sans-serif;
+    color: #1f2937;
+    font-size: 11.5pt;        /* increased from 10.5pt to reduce white space */
+    line-height: 1.35;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+}
+
+.resume-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.resume-header .name {
+    font-size: 24px;           /* increased for better balance on page */
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.resume-header .contact {
+    color: #4b5563;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* keep name/contact aligned left when photo present */
+.resume-header .header-left {
+    flex: 1 1 auto;
+}
+
+/* Photo container; ensures the image doesn't push content */
+.header-photo {
+    flex: 0 0 auto;
+    margin-left: 12px;
+}
+
+/* Photo: render as square ~1 inch (25.4mm) for print, scaled for screen */
+.photo {
+    width: 25.4mm;    /* ~1 inch */
+    height: 25.4mm;   /* ~1 inch */
+    max-width: 90px;  /* preview fallback */
+    max-height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    display: block;
+}
+
+.section-title {
+    color: #0b69a3;
+    font-size: 12.5px;        /* slightly larger */
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.section p {
+    margin: 0 0 8px 0;
+    font-size: 15px;          /* increased from 14px */
+    line-height: 1.45;
+    color: #334155;
+}
+
+.education-list, .skills-list {
+    padding-left: 18px;
+    margin: 0 0 8px 0;
+}
+
+.skills-list li, .education-list li {
+    margin-bottom: 6px;
+}
+
+/* Print rules for on-demand printing from browser */
+@media print {
+    body * { visibility: hidden; }
+    #resumeContent, #resumeContent * { visibility: visible; }
+    #resumeContent { position: absolute; left:0; top:0; width:210mm; box-shadow:none; }
+    .resume-sheet { box-shadow:none; }
+    .photo { box-shadow: none; border: 1px solid #ccc; }
+    @page { size: A4; margin: 18mm; }
+}
