@@ -1,29 +1,8 @@
-# Resume Generator
+# **IPIS Net**
+A dumbass website that doesn't really do anything. Express your freedom here LOL 
 
-A simple web application to create professional resumes.
+--- 
 
-## How to Use
 
-1. Open `index.html` in your web browser
-2. Fill out the form with your information
-3. Click "Generate Resume" to create your resume
-4. Download as PDF, PNG, or JPEG
-
-## Features
-
-- Professional resume templates
-- Photo upload support
-- Live preview
-- Multiple export formats
-- Form validation
-- Auto-save functionality
-
-## Files
-
-- `index.html` - Main application
-- `styles.css` - Styling
-- `script.js` - Application logic
-
-## Development
-
-Simply open the `index.html` file in any modern web browser. No server required.
+# Contributions
+Please do tell me if there's some features that you'd like to see like better resume format and such! 
