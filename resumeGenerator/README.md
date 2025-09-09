@@ -4,7 +4,7 @@ A professional web application for creating beautiful, formatted resumes. Built 
 
 ## 🌐 Live Demo
 
-**[Try it now!](https://your-username.github.io/resumeGenerator)**
+**[Try it now!](https://insecurebandit.github.io/resumeGenerator)**
 
 ## ✨ Features
 
