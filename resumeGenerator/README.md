@@ -22,7 +22,7 @@ A professional web application for creating beautiful, formatted resumes. Built 
 
 ## 🚀 Quick Start (For Users)
 
-1. **Visit the web app**: [Resume Generator](https://your-username.github.io/resumeGenerator)
+1. **Visit the web app**: [Resume Generator](https://insecurebandit.github.io/resumeGenerator)
 2. **Fill out the form**: Add your personal information, experience, and skills
 3. **Generate**: Click "Generate Resume" to create your resume
 4. **Download**: Export as PDF, PNG, or JPEG
