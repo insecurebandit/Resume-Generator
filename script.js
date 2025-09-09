@@ -414,19 +414,29 @@ class ResumeGenerator {
         }
         
         document.body.classList.toggle('preview-mode', this.state.isLivePreview);
+
+        // Ensure download button state respects current progress when toggling preview
+        try { this.updateProgress(); } catch (e) { /* ignore */ }
     }
 
-    setupLivePreviewListeners() {
-        this.livePreviewHandler = this.debounce(this.generateResume.bind(this), 500);
-        this.form.addEventListener('input', this.livePreviewHandler);
-        this.form.addEventListener('change', this.livePreviewHandler);
-    }
-
-    removeLivePreviewListeners() {
-        if (this.livePreviewHandler) {
-            this.form.removeEventListener('input', this.livePreviewHandler);
-            this.form.removeEventListener('change', this.livePreviewHandler);
+    async generateResume() {
+        // Collect all form data
+        const formData = this.collectFormData();
+        
+        // Generate resume HTML
+        const resumeHTML = this.buildResumeHTML(formData);
+        
+        // Inject into preview
+        this.resumeContent.innerHTML = resumeHTML;
+        this.resumeOutput.classList.remove('hidden');
+        
+        // Auto-scroll to preview if not in live mode
+        if (!this.state.isLivePreview) {
+            this.resumeOutput.scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Ensure progress and download state are up-to-date after generating preview
+        try { this.updateProgress(); } catch (e) { /* ignore */ }
     }
 
     updateProgress() {
@@ -460,6 +470,23 @@ class ResumeGenerator {
         } else {
             this.progressFill.style.backgroundColor = '#10b981';
         }
+
+        // Manage download button state: only enable when progress is 100%
+        try {
+            if (this.downloadBtn) {
+                const canDownload = percentage === 100;
+                this.downloadBtn.disabled = !canDownload;
+                this.downloadBtn.title = canDownload ? 'Download your resume' : 'Complete the form to 100% to enable download';
+                // update style for disabled state for accessibility
+                if (canDownload) {
+                    this.downloadBtn.classList.remove('disabled');
+                } else {
+                    this.downloadBtn.classList.add('disabled');
+                }
+            }
+        } catch (e) {
+            // ignore if elements not yet bound
+        }
     }
 
     async handleSubmit(e) {
@@ -475,7 +502,8 @@ class ResumeGenerator {
         try {
             await this.generateResume();
             this.showGlobalSuccess('Resume generated successfully!');
-            this.downloadBtn.disabled = false;
+            // don't unconditionally enable download; rely on updateProgress to control it
+            this.updateProgress();
         } catch (error) {
             this.showGlobalError('Failed to generate resume. Please try again.');
             console.error('Resume generation error:', error);
@@ -499,6 +527,9 @@ class ResumeGenerator {
         if (!this.state.isLivePreview) {
             this.resumeOutput.scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Ensure progress and download state are up-to-date after generating preview
+        try { this.updateProgress(); } catch (e) { /* ignore */ }
     }
 
     collectFormData() {
