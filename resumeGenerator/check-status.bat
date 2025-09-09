@@ -51,6 +51,7 @@ for %%f in (index.html styles.css script.js) do (
 
 echo.
 echo Ready for deployment to: https://insecurebandit.github.io/resumeGenerator
+echo (Will serve index.html as the main page - the Resume Generator app)
 echo.
 
 echo To deploy, run: deploy.bat

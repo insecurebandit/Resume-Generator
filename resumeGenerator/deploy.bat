@@ -3,7 +3,8 @@ echo ====================================
 echo Resume Generator - GitHub Pages Deploy
 echo ====================================
 echo.
-echo This will deploy to: https://insecurebandit.github.io/resumeGenerator
+echo This will deploy the Resume Generator app to: https://insecurebandit.github.io/resumeGenerator
+echo (The URL will load index.html - the actual app, not documentation)
 echo.
 
 echo Step 1: Initialize Git repository
