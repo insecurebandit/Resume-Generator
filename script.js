@@ -24,6 +24,11 @@ class ResumeGenerator {
     init() {
         this.bindElements();
         this.setupEventListeners();
+        // add a debounced preview generator for live preview
+        this.generateResumeDebounced = this.debounce(() => {
+            // only generate when live preview mode is active
+            if (this.state.isLivePreview) this.generateResume();
+        }, 300);
         this.loadSavedData();
         this.setupAutoSave();
         this.updateProgress();
@@ -302,6 +307,8 @@ class ResumeGenerator {
             this.updateSkillsHiddenField();
             this.validateSkills();
             this.updateProgress();
+            // update live preview if enabled
+            if (this.state.isLivePreview) this.generateResumeDebounced();
         }
     }
 
@@ -311,6 +318,8 @@ class ResumeGenerator {
         this.updateSkillsHiddenField();
         this.validateSkills();
         this.updateProgress();
+        // update live preview if enabled
+        if (this.state.isLivePreview) this.generateResumeDebounced();
     }
 
     renderSkillsTags() {
@@ -361,6 +370,8 @@ class ResumeGenerator {
         
         // Show preview or success message
         this.showGlobalSuccess('Photo uploaded successfully');
+        // update live preview if enabled
+        if (this.state.isLivePreview) this.generateResumeDebounced();
     }
 
     addEducationSection() {
@@ -869,6 +880,38 @@ class ResumeGenerator {
     clearSavedData() {
         localStorage.removeItem('resumeGenerator_draft');
         this.state.isDirty = false;
+    }
+
+    // Attach listeners used only during live-preview mode
+    setupLivePreviewListeners() {
+        if (this._livePreviewAttached) return;
+
+        // Listen to form input/change to update preview
+        this.form.addEventListener('input', this.generateResumeDebounced);
+        this.form.addEventListener('change', this.generateResumeDebounced);
+
+        // Skills changes: update preview when adding/removing tags
+        this.skillsInput.addEventListener('keydown', this.generateResumeDebounced);
+        this.skillsInput.addEventListener('input', this.generateResumeDebounced);
+
+        // Photo change should update preview immediately
+        this.photoInput.addEventListener('change', this.generateResumeDebounced);
+
+        // Store a flag so we don't double attach
+        this._livePreviewAttached = true;
+    }
+
+    // Remove listeners when live-preview is disabled
+    removeLivePreviewListeners() {
+        if (!this._livePreviewAttached) return;
+
+        this.form.removeEventListener('input', this.generateResumeDebounced);
+        this.form.removeEventListener('change', this.generateResumeDebounced);
+        this.skillsInput.removeEventListener('keydown', this.generateResumeDebounced);
+        this.skillsInput.removeEventListener('input', this.generateResumeDebounced);
+        this.photoInput.removeEventListener('change', this.generateResumeDebounced);
+
+        this._livePreviewAttached = false;
     }
 }
 
