@@ -37,6 +37,7 @@ class ResumeGenerator {
         
         // Input elements
         this.nameInput = document.getElementById('name');
+        this.suffixInput = document.getElementById('suffix'); // optional suffix (e.g., Jr., Sr., III)
         this.emailInput = document.getElementById('email');
         this.phoneInput = document.getElementById('phone');
         this.photoInput = document.getElementById('photo');
@@ -558,6 +559,7 @@ class ResumeGenerator {
         
         return {
             name: this.nameInput.value.trim(),
+            suffix: this.suffixInput ? this.suffixInput.value.trim() : '', // optional
             email: this.emailInput.value.trim(),
             phone: this.phoneInput.value.trim(),
             summary: this.summaryInput.value.trim(),
@@ -578,7 +580,7 @@ class ResumeGenerator {
             <div class="resume-sheet">
                 <header class="resume-header">
                     <div class="header-left">
-                        <h1 class="name">${this.escapeHTML(data.name)}</h1>
+                        <h1 class="name">${this.escapeHTML(data.name)}${data.suffix ? ', ' + this.escapeHTML(data.suffix) : ''}</h1>
                         <div class="contact">${this.escapeHTML(data.email)} &nbsp; | &nbsp; ${this.escapeHTML(data.phone)}</div>
                     </div>
                     ${data.photo ? `<div class="header-photo"><img class="photo" src="${data.photo}" alt="Profile Photo"></div>` : ''}
@@ -847,6 +849,7 @@ class ResumeGenerator {
         if (data.formData) {
             const form = data.formData;
             if (form.name) this.nameInput.value = form.name;
+            if (form.suffix && this.suffixInput) this.suffixInput.value = form.suffix;
             if (form.email) this.emailInput.value = form.email;
             if (form.phone) this.phoneInput.value = form.phone;
             if (form.summary) this.summaryInput.value = form.summary;
